@@ -1,5 +1,5 @@
 import "./style.css";
-import { domManipulator,toDoManager } from "./toDoFunctions.js";
+import { domManipulator,toDoManager,allTasksList,projectList } from "./toDoFunctions.js";
 
 // default renders
 domManipulator.renderProjectSidebar();
@@ -64,14 +64,6 @@ projectHomeNav.addEventListener('click',()=>{
     domManipulator.renderDashboardTitle('Projects');
     domManipulator.displayAllProject();
 })
-
-projectNav.forEach((div)=>{
-    div.addEventListener('click', () =>{
-        domManipulator.emptyDashboard();
-        domManipulator.renderDashboardTitle(div.textContent);
-    })
-})
-
 
 // popup create new task/project render
 const navNewTask = document.querySelector('#nav-new-task');

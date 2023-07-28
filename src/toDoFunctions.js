@@ -23,13 +23,22 @@ export const domManipulator = (function() {
 
     // render project names in sidebar
     function renderProjectSidebar(){
-        while (navProject.children.length>1){
+        while (navProject.children.length>1){ //empty the sidebar
             navProject.children[1].remove();
         }
         for (let i=0; i<projectList.length; i++){
             const sidebarProjectName = document.createElement('div');
             sidebarProjectName.textContent = projectList[i].title;
             sidebarProjectName.className="side-project-names";
+
+            sidebarProjectName.addEventListener('click', () =>{
+                emptyDashboard();
+                renderDashboardTitle(sidebarProjectName.textContent);
+                const projectName = sidebarProjectName.textContent;
+                console.log(projectName);
+                displayProjectTask(projectName);
+            })
+
             navProject.appendChild(sidebarProjectName);
         }
     }
@@ -91,10 +100,15 @@ export const domManipulator = (function() {
         projectSelect.name = "task-project";
         projectSelect.id = "task-project";
 
+        const projectSelectOption = document.createElement('option');
+
+        projectSelectOption.textContent = ""; //default for tasks not associated with any project
+        projectSelect.appendChild(projectSelectOption);
+
         for (let i=0; i<projectList.length; i++){
             const projectSelectOption = document.createElement('option');
-            projectSelectOption.textContent = projectList[i];
-            projectSelectOption.value = projectList[i].split(" ").join("");
+            projectSelectOption.textContent = projectList[i].title;
+            projectSelectOption.value = projectList[i].title;
             projectSelect.appendChild(projectSelectOption);
         }
         projectFormGroup.appendChild(projectSelect);
@@ -178,6 +192,9 @@ export const domManipulator = (function() {
         const createProjectButton = document.createElement('button');
         createProjectButton.id="create-new-submit-project";
         createProjectButton.textContent = "Add Project";
+        createProjectButton.addEventListener('click',()=>{
+            toDoManager.submitProject();
+        })
         popupFormButtons.appendChild(createProjectButton);
     }
 
@@ -232,14 +249,19 @@ export const domManipulator = (function() {
             const project = projectList[i];
 
             const newProjectContainer = document.createElement('div');
+            newProjectContainer.className="project-container";
 
             const newProjectName = document.createElement('div');
             newProjectName.className="project-name";
             newProjectName.textContent = project.title;
 
-            const newProjectDetails = document.createElement('div');
-            newProjectDetails.className="project-details";;
-            newProjectDetails.textContent=project.details;
+            newProjectName.addEventListener('click', () =>{
+                emptyDashboard();
+                renderDashboardTitle(newProjectName.textContent);
+                const projectName = newProjectName.textContent;
+                console.log(projectName);
+                displayProjectTask(projectName);
+            })
 
             const projectButtonsContainer = document.createElement('div');
             projectButtonsContainer.className="project-buttons-container";
@@ -253,13 +275,59 @@ export const domManipulator = (function() {
             projectButtonsContainer.appendChild(deleteProjectButton);
 
             newProjectContainer.appendChild(newProjectName);
-            newProjectContainer.appendChild(newProjectDetails);
             newProjectContainer.appendChild(projectButtonsContainer);
 
             taskList.appendChild(newProjectContainer);
         }
     }
     
+    // display tasks for specific project
+    function displayProjectTask(projectName){
+        for (let i=0; i<allTasksList.length; i++){
+            if (allTasksList[i].project === projectName.trim()){ //only renders the task if the task's project name matches whatever project was clicked
+                // same as rendering any task list 
+                const task = allTasksList[i];
+
+                const newTaskContainer = document.createElement('div');
+                newTaskContainer.className="task-container";
+
+                const newTaskName = document.createElement('div');
+                newTaskName.className="task-name";
+                newTaskName.textContent= task.title;
+
+                const newTaskDate = document.createElement('div');
+                newTaskDate.className = "task-date";
+                newTaskDate.textContent=task.date;
+
+                const newTaskProject =document.createElement('div');
+                newTaskProject.className="task-project";
+                newTaskProject.textContent=task.project;
+
+                const newTaskStatus = document.createElement('div');
+                newTaskStatus.className="task-status";
+                newTaskStatus.className=task.status;
+
+                const taskButtonsContainer = document.createElement('div');
+                taskButtonsContainer.className="task-buttons-container";
+                const editTaskButton = document.createElement('div');
+                editTaskButton.className = "edit task-button";
+                editTaskButton.textContent="Edit";
+                taskButtonsContainer.appendChild(editTaskButton);
+                const deleteTaskButton = document.createElement('div');
+                deleteTaskButton.className = "delete task-button";
+                deleteTaskButton.textContent = "Delete";
+                taskButtonsContainer.appendChild(deleteTaskButton);
+
+                newTaskContainer.appendChild(newTaskName);
+                newTaskContainer.appendChild(newTaskDate);
+                newTaskContainer.appendChild(newTaskProject);
+                newTaskContainer.appendChild(newTaskStatus);
+                newTaskContainer.appendChild(taskButtonsContainer);
+
+                taskList.appendChild(newTaskContainer);
+            }
+        }
+    }
     
     return{
         emptyDashboard,
@@ -270,14 +338,13 @@ export const domManipulator = (function() {
         renderProjectSidebar,
         displayAllTask,
         displayAllProject,
+        displayProjectTask,
     }
 })();
 
 
 const createNewPopup = document.querySelector('#create-new-popup');
 export const toDoManager = (function() {
-
-    let currentProject = "home";
 
     // object constructor //
     class Task{
@@ -296,13 +363,14 @@ export const toDoManager = (function() {
         const date = document.querySelector('#task-date').value;
         const details = document.querySelector('#task-details').value;
         const project = document.querySelector('#task-project').value;
+        console.log("project:" + project);
         const status = "not done"; //default is not done
 
         const newTask = new Task(title, date, details, project,status);
         allTasksList.push(newTask);
     }
 
-    function submitTask(){ //when u click create task
+    function submitTask(){ //when u click "add task"
         addTask(); // add task to array
         domManipulator.emptyDashboard(); //empty the tasklist
         domManipulator.displayAllTask(); // fills in tasklist
@@ -310,6 +378,8 @@ export const toDoManager = (function() {
         domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
     }
 
+
+    // object constructor
     class Project{
         constructor(title,details){
             this.title = title;
@@ -317,18 +387,29 @@ export const toDoManager = (function() {
         }
     }
 
+    // adds new project to projectList array
     function addProject(){
         const title = document.querySelector('#project-name').value;
         const details = document.querySelector('#project-details');
 
         const newProject = new Project(title, details);
         projectList.push(newProject);
+    }
+
+    function submitProject(){ // when u click "Add project"
+        addProject(); // add project to the array
+        domManipulator.emptyDashboard(); //empty the tasklist
+        domManipulator.displayAllTask(); // fills in tasklist - default to home page
+        domManipulator.renderProjectSidebar(); //empties and renders new sidebar
+        createNewPopup.style.display='none'; // close popup 
+        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
 
     }
 
     return{
         addTask,
         submitTask,
-        addProject
+        addProject,
+        submitProject
     }
 })();
