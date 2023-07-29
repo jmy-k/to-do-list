@@ -122,8 +122,7 @@ export const domManipulator = (function() {
         detailsFormLabel.textContent="Details: ";
         detailsFormGroup.appendChild(detailsFormLabel);
 
-        const detailsFormInput = document.createElement('input');
-        detailsFormInput.type = "textarea";
+        const detailsFormInput = document.createElement('textarea');
         detailsFormInput.id = "task-details";
         detailsFormGroup.appendChild(detailsFormInput);
 
@@ -177,8 +176,7 @@ export const domManipulator = (function() {
         projectDetailsFormLabel.textContent="Details: ";
         projectDetailsFormGroup.appendChild(projectDetailsFormLabel);
 
-        const projectDetailsFormInput = document.createElement('input');
-        projectDetailsFormInput.type = "textarea";
+        const projectDetailsFormInput = document.createElement('textarea');
         projectDetailsFormInput.id = "project-details";
         projectDetailsFormGroup.appendChild(projectDetailsFormInput);
 
@@ -227,6 +225,9 @@ export const domManipulator = (function() {
             const editTaskButton = document.createElement('div');
             editTaskButton.className = "edit task-button";
             editTaskButton.textContent="Edit";
+            editTaskButton.addEventListener('click', e =>{
+                renderEditTask(e);
+            })
             taskButtonsContainer.appendChild(editTaskButton);
             const deleteTaskButton = document.createElement('div');
             deleteTaskButton.className = "delete task-button";
@@ -328,6 +329,113 @@ export const domManipulator = (function() {
             }
         }
     }
+
+    const editTaskPopup = document.querySelector('#edit-task');
+
+    // opens edit task popup
+    function renderEditTask(e){
+        const taskContainer = e.closest('.task-container');
+        const editTaskFormContainer = document.querySelector('#edit-task-main');
+        const oldTaskName = taskContainer.querySelector('.task-name');
+        const oldTaskDate = taskContainer.querySelector('.task-date');
+        const oldTaskProject = taskContainer.querySelector('.task-project');
+
+        for(let i=0;i<allTasksList.length;i++){
+            // checks if the clicked container has the matching task info in case there are tasks with duplicate info
+            if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
+                // edit task name
+                const editTaskName = document.createElement('div');
+                editTaskName.className="form-group";
+
+                const oldTaskNameLabel = document.createElement('label');
+                oldTaskNameLabel.htmlFor="old-task-name";
+                oldTaskNameLabel.textContent="Name: ";
+                editTaskName.appendChild(oldTaskNameLabel);
+
+                const oldTaskNameInput = document.createElement('input');
+                oldTaskNameInput.type="text";
+                oldTaskNameInput.id="old-task-name";
+                oldTaskNameInput.minLength="1";
+                oldTaskNameInput.setAttribute('required','');
+                oldTaskNameInput.placeholder = allTasksList[i].title; // placeholder for the input is the current task name
+                editTaskName.appendChild(oldTaskNameInput);
+
+                const oldTaskNameInvalid =  document.createElement('div');
+                oldTaskNameInvalid.className="invalid-feedback";
+                oldTaskNameInvalid.textContent="Task name is required";
+                editTaskName.appendChild(oldTaskNameInvalid);
+
+                // edit task date
+                const editTaskDate =  document.createElement('div');
+                editTaskDate.className="form-group";
+
+                const oldTaskDateLabel =  document.createElement('label');
+                oldTaskDateLabel.htmlFor="old-task-date";
+                oldTaskDateLabel.textContent="Due: ";
+                editTaskDate.appendChild(oldTaskDateLabel);
+
+                const oldTaskDateInput =  document.createElement('input');
+                oldTaskDateInput.type="date";
+                oldTaskDateInput.id="old-task-date";
+                oldTaskDateInput.placeholder = allTasksList[i].date; // placeholder for input is current taskdate
+                editTaskDate.appendChild(oldTaskDateInput);
+
+                // edit task project
+                const editTaskProject = document.createElement('div');
+                editTaskProject.className="form-group";
+
+                const oldTaskProjectLabel =  document.createElement('label');
+                oldTaskProjectLabel.htmlFor="old-task-project";
+                oldTaskProjectLabel.textContent="Project: ";
+                editTaskProject.appendChild(oldTaskProjectLabel);
+
+                const oldProjectSelect = document.createElement('select');
+                oldProjectSelect.name = "old-task-project";
+                oldProjectSelect.id="old-task-project";
+                const projectSelectOption = document.createElement('option');
+                projectSelectOption.textContent=""; // still have an option to not pick a project
+                oldProjectSelect.appendChild(projectSelectOption);
+
+                for (let j=0; j<projectList.length; j++){
+                    const projectSelectOption = document.createElement('option');
+                    projectSelectOption.textContent = projectList[j].title;
+                    projectSelectOption.value = projectList[j].title;
+
+                    if (projectList[j].title === allTasksList[i].project){
+                        projectSelectOption.setAttribute('selected','selected') // default selected option is the current project
+                    }
+
+                    oldProjectSelect.appendChild(projectSelectOption);
+                    }
+            
+                
+                editTaskProject.appendChild(oldProjectSelect);
+
+                // edit task details
+                const editTaskDetails = document.createElement('div');
+                editTaskDetails.className="form-group";
+
+                const oldTaskDetailsLabel = document.createElement('label');
+                oldTaskDetailsLabel.htmlFor="old-task-details";
+                oldTaskDetailsLabel.textContent="Details: ";
+                editTaskDetails.appendChild(oldTaskDetailsLabel);
+
+                const oldTaskDetailsInput = document.createElement('textarea');
+                oldTaskDetailsInput.id="old-task-details";
+                oldTaskDetailsInput.value=allTasksList[i].details;
+
+                editTaskDetails.appendChild(oldTaskDetailsInput);
+
+                //append all form parts
+                editTaskFormContainer.appendChild(editTaskName);
+                editTaskFormContainer.appendChild(editTaskDate);
+                editTaskFormContainer.appendChild(editTaskProject);
+                editTaskFormContainer.appendChild(editTaskDetails);
+            }
+
+        }
+        
+    }
     
     return{
         emptyDashboard,
@@ -339,6 +447,7 @@ export const domManipulator = (function() {
         displayAllTask,
         displayAllProject,
         displayProjectTask,
+        renderEditTask
     }
 })();
 
@@ -363,11 +472,11 @@ export const toDoManager = (function() {
         const date = document.querySelector('#task-date').value;
         const details = document.querySelector('#task-details').value;
         const project = document.querySelector('#task-project').value;
-        console.log("project:" + project);
         const status = "not done"; //default is not done
 
         const newTask = new Task(title, date, details, project,status);
         allTasksList.push(newTask);
+        console.log(allTasksList)
     }
 
     function submitTask(){ //when u click "add task"
@@ -376,6 +485,12 @@ export const toDoManager = (function() {
         domManipulator.displayAllTask(); // fills in tasklist
         createNewPopup.style.display='none'; // close popup 
         domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+
+        
+    }
+
+    function editTask(){
+
     }
 
 
