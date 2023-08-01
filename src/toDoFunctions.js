@@ -775,7 +775,14 @@ export const toDoManager = (function() {
                 break
             }
         }
+
+        for (let j = 0; j < allTasksList.length; j++){ // delete all instances of that project in tasks array
+            if (allTasksList[j].project === oldProjectName.textContent){
+                allTasksList[j].project="";
+            }
+        }
         console.log(projectList);
+        console.log(allTasksList);
         domManipulator.emptyDashboard(); //empty the tasklist
         domManipulator.displayAllProject(); // fills in tasklist
         domManipulator.renderDashboardTitle('Projects'); //defaults to all tasks page
