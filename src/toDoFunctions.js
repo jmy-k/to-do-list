@@ -6,6 +6,8 @@ const popupFormBody = document.querySelector('#form-body-create-new');
 const navProject = document.querySelector('#side-project-container');
 const popupFormButtons = document.querySelector('#create-new-buttons');
 
+const editTaskPopup = document.querySelector('#edit-task');
+
 const allTasksList = [];
 const projectList = [{title: "Poop", details: ""}, {title:"yaaa", details:""}, {title:"Birthday Plans",details:""}];
 
@@ -43,6 +45,8 @@ export const domManipulator = (function() {
         }
     }
 
+
+    // CREATING TASKS/PROJECTS DOM
     // create new popup render, default is create new task
     // empty the popup
     function emptyPopup(){
@@ -84,7 +88,10 @@ export const domManipulator = (function() {
         dateFormGroup.appendChild(dateFormLabel);
 
         const dateFormInput = document.createElement('input');
-        dateFormInput.type="date";
+        dateFormInput.type="text";
+        dateFormInput.placeholder="MM/DD/YYYY";
+        dateFormInput.onfocus=function(){dateFormInput.type='date'};
+        dateFormInput.onblur=function(){dateFormInput.type='text'};
         dateFormInput.id="task-date";
         dateFormGroup.appendChild(dateFormInput);
 
@@ -221,17 +228,24 @@ export const domManipulator = (function() {
             newTaskStatus.className=task.status;
 
             const taskButtonsContainer = document.createElement('div');
+
             taskButtonsContainer.className="task-buttons-container";
             const editTaskButton = document.createElement('div');
             editTaskButton.className = "edit task-button";
             editTaskButton.textContent="Edit";
-            editTaskButton.addEventListener('click', e =>{
-                renderEditTask(e);
+            editTaskButton.addEventListener('click', () =>{
+                emptyEditPopup();
+                renderEditTask(editTaskButton);
+                editTaskPopup.style.display = "grid";
             })
             taskButtonsContainer.appendChild(editTaskButton);
+
             const deleteTaskButton = document.createElement('div');
             deleteTaskButton.className = "delete task-button";
             deleteTaskButton.textContent = "Delete";
+            deleteTaskButton.addEventListener('click',()=>{
+                toDoManager.deleteTask(deleteTaskButton)
+            })
             taskButtonsContainer.appendChild(deleteTaskButton);
 
             newTaskContainer.appendChild(newTaskName);
@@ -330,15 +344,25 @@ export const domManipulator = (function() {
         }
     }
 
-    const editTaskPopup = document.querySelector('#edit-task');
+
+    // EDITING TASKS DOM
+    const editTaskFormContainer = document.querySelector('#edit-task-main');
+
+    // empties edit task popup before being open
+    function emptyEditPopup(){
+        while (editTaskFormContainer.children.length>0){
+            editTaskFormContainer.children[0].remove()
+        }
+    }
 
     // opens edit task popup
-    function renderEditTask(e){
-        const taskContainer = e.closest('.task-container');
-        const editTaskFormContainer = document.querySelector('#edit-task-main');
+    function renderEditTask(button){
+        const taskContainer = button.closest('.task-container');
         const oldTaskName = taskContainer.querySelector('.task-name');
         const oldTaskDate = taskContainer.querySelector('.task-date');
         const oldTaskProject = taskContainer.querySelector('.task-project');
+
+        const editTaskButtonsContainer = document.querySelector('#edit-task-buttons')
 
         for(let i=0;i<allTasksList.length;i++){
             // checks if the clicked container has the matching task info in case there are tasks with duplicate info
@@ -375,9 +399,11 @@ export const domManipulator = (function() {
                 editTaskDate.appendChild(oldTaskDateLabel);
 
                 const oldTaskDateInput =  document.createElement('input');
-                oldTaskDateInput.type="date";
+                oldTaskDateInput.type="text";
                 oldTaskDateInput.id="old-task-date";
                 oldTaskDateInput.placeholder = allTasksList[i].date; // placeholder for input is current taskdate
+                oldTaskDateInput.onfocus= function(){oldTaskDateInput.type='date'};
+                oldTaskDateInput.onblur= function(){oldTaskDateInput.type='text'};
                 editTaskDate.appendChild(oldTaskDateInput);
 
                 // edit task project
@@ -426,11 +452,31 @@ export const domManipulator = (function() {
 
                 editTaskDetails.appendChild(oldTaskDetailsInput);
 
+                // edit task buttons
+                const editTaskClose = document.createElement('button');
+                editTaskClose.id = "edit-task-close";
+                editTaskClose.textContent = "Close";
+                editTaskClose.addEventListener('click', ()=>{
+                    editTaskPopup.style.display="none";
+                } )
+                editTaskButtonsContainer.appendChild(editTaskClose);
+
+                const editTaskSubmit = document.createElement('button');
+                editTaskSubmit.id="edit-task-submit";
+                editTaskSubmit.textContent="Update Task";
+                editTaskSubmit.addEventListener('click', ()=>{
+                    toDoManager.submitEdit(button);
+
+                })
+                editTaskButtonsContainer.appendChild(editTaskSubmit);
+
+
                 //append all form parts
                 editTaskFormContainer.appendChild(editTaskName);
                 editTaskFormContainer.appendChild(editTaskDate);
                 editTaskFormContainer.appendChild(editTaskProject);
                 editTaskFormContainer.appendChild(editTaskDetails);
+                
             }
 
         }
@@ -489,10 +535,55 @@ export const toDoManager = (function() {
         
     }
 
-    function editTask(){
 
+    // "update task" button clicked.. i have to put this inside the render edit task function
+    // so it knows which task to update
+    function submitEdit(button){
+
+        // same definitions and names as in the edit task popup render function
+        const taskContainer = button.closest('.task-container');
+        const oldTaskName = taskContainer.querySelector('.task-name');
+        const oldTaskDate = taskContainer.querySelector('.task-date');
+        const oldTaskProject = taskContainer.querySelector('.task-project');
+
+        const oldTaskNameInput = document.querySelector('#old-task-name');
+        const oldTaskDateInput = document.querySelector('#old-task-date');
+        const oldProjectSelect = document.querySelector('#old-task-project');
+        const oldTaskDetailsInput = document.querySelector('#old-task-details');
+
+        for(let i=0;i<allTasksList.length;i++){
+            if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
+                allTasksList[i].title = oldTaskNameInput.value;
+                allTasksList[i].date = oldTaskDateInput.value;
+                allTasksList[i].project = oldProjectSelect.value;
+                allTasksList[i].details = oldTaskDetailsInput.value;
+            }
+        }
+        console.log(allTasksList);
+        domManipulator.emptyDashboard(); //empty the tasklist
+        domManipulator.displayAllTask(); // fills in tasklist
+        editTaskPopup.style.display='none'; // close popup 
+        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
     }
 
+    function deleteTask(button){
+        const taskContainer = button.closest('.task-container');
+        const oldTaskName = taskContainer.querySelector('.task-name');
+        const oldTaskDate = taskContainer.querySelector('.task-date');
+        const oldTaskProject = taskContainer.querySelector('.task-project');
+
+        for(let i=0;i<allTasksList.length;i++){
+            if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
+                allTasksList.splice(i,1);
+                break
+            }
+        }
+        console.log(allTasksList);
+        domManipulator.emptyDashboard(); //empty the tasklist
+        domManipulator.displayAllTask(); // fills in tasklist
+        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+
+    }
 
     // object constructor
     class Project{
@@ -525,6 +616,8 @@ export const toDoManager = (function() {
         addTask,
         submitTask,
         addProject,
-        submitProject
+        submitProject,
+        submitEdit,
+        deleteTask
     }
 })();

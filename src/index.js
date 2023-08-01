@@ -20,21 +20,12 @@ createNew.addEventListener('click', () =>{
     domManipulator.renderTaskForm(); //default form is the task form
 })
 
-editTaskButton.forEach((div)=>{
- div.addEventListener('click',()=>{
-        editTaskPopup.style.display='grid';
-    })
-})
 
 closeCreatePopup.addEventListener('click',()=>{
     createNewPopup.style.display='none';
     // add function to clear the form values
 })
 
-closeEditPopup.addEventListener('click',()=>{
-    editTaskPopup.style.display="none";
-    //also need to add function to clear the form values
-})
 
 // sidebar navigation and dashboard render
 const homeNav = document.querySelector('#home-button');
