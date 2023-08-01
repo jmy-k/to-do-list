@@ -7,10 +7,7 @@ domManipulator.renderProjectSidebar();
 // dashboard links and popups
 const createNew = document.querySelector('#create-new-button');
 const createNewPopup = document.querySelector('#create-new-popup');
-const editTaskButton = document.querySelectorAll('.edit');
-const editTaskPopup = document.querySelector('#edit-task');
 const closeCreatePopup=document.querySelector('#create-new-close');
-const closeEditPopup = document.querySelector('#edit-task-close');
 
 
 
