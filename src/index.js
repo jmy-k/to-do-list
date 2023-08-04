@@ -8,11 +8,12 @@ domManipulator.renderProjectSidebar();
 const createNew = document.querySelector('#create-new-button');
 const createNewPopup = document.querySelector('#create-new-popup');
 const closeCreatePopup=document.querySelector('#create-new-close');
-
+const overlay=document.querySelector('.overlay')
 
 
 createNew.addEventListener('click', () =>{
     createNewPopup.style.display = 'grid';
+    overlay.style.display='flex';
     domManipulator.emptyPopup();   //empties the popup form area
     domManipulator.renderTaskForm(); //default form is the task form
 })
@@ -20,6 +21,7 @@ createNew.addEventListener('click', () =>{
 
 closeCreatePopup.addEventListener('click',()=>{
     createNewPopup.style.display='none';
+    overlay.style.display='none';
     // add function to clear the form values
 })
 
@@ -27,24 +29,22 @@ closeCreatePopup.addEventListener('click',()=>{
 // sidebar navigation and dashboard render
 const homeNav = document.querySelector('#home-button');
 const todayNav = document.querySelector('#today-button');
-const weekNav = document.querySelector ('#week-button');
 const projectHomeNav=document.querySelector('#project-button');
-const projectNav = document.querySelectorAll('.side-project-names');
 
 homeNav.addEventListener('click',()=>{
     domManipulator.emptyDashboard();
     domManipulator.renderDashboardTitle('All Tasks');
     domManipulator.displayAllTask();
+
+    homeNav.classList.add("page");
+    todayNav.classList.remove("page");
+    projectHomeNav.classList.remove("page")
 })
 
 todayNav.addEventListener('click',()=>{
     domManipulator.emptyDashboard();
     domManipulator.renderDashboardTitle('Today');
-})
-
-weekNav.addEventListener('click',()=>{
-    domManipulator.emptyDashboard();
-    domManipulator.renderDashboardTitle('This Week');
+    domManipulator.displayTodayTask();
 })
 
 projectHomeNav.addEventListener('click',()=>{
@@ -60,9 +60,17 @@ const navNewProject = document.querySelector('#nav-new-project')
 navNewTask.addEventListener('click', () => {
     domManipulator.emptyPopup();
     domManipulator.renderTaskForm();
+
+    //for styling
+    navNewTask.classList.add("clicked");
+    navNewProject.classList.remove("clicked");
 })
 
 navNewProject.addEventListener('click',()=>{
     domManipulator.emptyPopup();
     domManipulator.renderProjectForm();
+
+    //for styling
+    navNewProject.classList.add("clicked");
+    navNewTask.classList.remove("clicked");
 })

@@ -7,6 +7,7 @@ const navProject = document.querySelector('#side-project-container');
 const popupFormButtons = document.querySelector('#create-new-buttons');
 
 const editPopup = document.querySelector('#edit');
+const overlay=document.querySelector('.overlay')
 
 const allTasksList = [];
 const projectList = [];
@@ -37,7 +38,6 @@ export const domManipulator = (function() {
                 emptyDashboard();
                 renderDashboardTitle(sidebarProjectName.textContent);
                 const projectName = sidebarProjectName.textContent;
-                console.log(projectName);
                 displayProjectTask(projectName);
             })
 
@@ -89,7 +89,7 @@ export const domManipulator = (function() {
 
         const dateFormInput = document.createElement('input');
         dateFormInput.type="text";
-        dateFormInput.placeholder="MM/DD/YYYY";
+        dateFormInput.placeholder="dd/mm/yyyy";
         dateFormInput.onfocus=function(){dateFormInput.type='date'};
         dateFormInput.onblur=function(){dateFormInput.type='text'};
         dateFormInput.id="task-date";
@@ -101,6 +101,7 @@ export const domManipulator = (function() {
 
         const projectFormLabel = document.createElement('label');
         projectFormLabel.htmlFor = "task-project";
+        projectFormLabel.textContent = "Project: "
         projectFormGroup.appendChild(projectFormLabel);
 
         const projectSelect = document.createElement('select');
@@ -147,6 +148,7 @@ export const domManipulator = (function() {
         createTaskButton.id="create-new-submit-task";
         createTaskButton.textContent = "Add Task";
         createTaskButton.addEventListener('click',()=>{
+            overlay.style.display="none";
             toDoManager.submitTask();
         })
         popupFormButtons.appendChild(createTaskButton);
@@ -198,6 +200,7 @@ export const domManipulator = (function() {
         createProjectButton.id="create-new-submit-project";
         createProjectButton.textContent = "Add Project";
         createProjectButton.addEventListener('click',()=>{
+            overlay.style.display="none"
             toDoManager.submitProject();
         })
         popupFormButtons.appendChild(createProjectButton);
@@ -207,6 +210,7 @@ export const domManipulator = (function() {
 
     // display ALL tasks for the home page
     function displayAllTask(){
+        console.log(allTasksList);
         if (allTasksList.length === 0){
             const noTasksYet = document.createElement('div');
             noTasksYet.textContent = "No Tasks Yet!"
@@ -218,6 +222,13 @@ export const domManipulator = (function() {
 
             const newTaskContainer = document.createElement('div');
             newTaskContainer.className="task-container";
+            if (allTasksList[i].status==="done"){
+                newTaskContainer.classList.add("checked")
+            }
+            else{
+                newTaskContainer.classList.add("unchecked")
+            }
+
 
             const newTaskName = document.createElement('div');
             newTaskName.className="task-name";
@@ -233,7 +244,17 @@ export const domManipulator = (function() {
 
             const newTaskStatus = document.createElement('div');
             newTaskStatus.className="task-status";
-            newTaskStatus.textContent=task.status;
+            if (task.status === "not done"){
+                newTaskStatus.classList.add("unchecked");
+                newTaskStatus.classList.remove("checked")
+            }
+            else if (task.status === "done"){
+                newTaskStatus.classList.add("checked");
+                newTaskStatus.classList.remove("unchecked")
+            }
+            newTaskStatus.addEventListener('click',()=>{
+                toDoManager.toggleComplete(newTaskStatus);
+            })
 
             const taskButtonsContainer = document.createElement('div');
 
@@ -242,6 +263,7 @@ export const domManipulator = (function() {
             editTaskButton.className = "edit task-button";
             editTaskButton.textContent="Edit";
             editTaskButton.addEventListener('click', () =>{
+                overlay.style.display='flex'; //overlay
                 emptyEditPopup(); // clears the popup form so it's "refreshed"
                 renderEditTask(editTaskButton); // the appropriate placeholders will appear in the form
                 editPopup.style.display = "grid";
@@ -256,10 +278,10 @@ export const domManipulator = (function() {
             })
             taskButtonsContainer.appendChild(deleteTaskButton);
 
+            newTaskContainer.appendChild(newTaskStatus);
             newTaskContainer.appendChild(newTaskName);
             newTaskContainer.appendChild(newTaskDate);
             newTaskContainer.appendChild(newTaskProject);
-            newTaskContainer.appendChild(newTaskStatus);
             newTaskContainer.appendChild(taskButtonsContainer);
 
             taskList.appendChild(newTaskContainer);
@@ -288,7 +310,6 @@ export const domManipulator = (function() {
                 emptyDashboard();
                 renderDashboardTitle(newProjectName.textContent);
                 const projectName = newProjectName.textContent;
-                console.log(projectName);
                 displayProjectTask(projectName);
             })
 
@@ -298,6 +319,7 @@ export const domManipulator = (function() {
             editProjectButton.className = "edit project-button";
             editProjectButton.textContent="Edit";
             editProjectButton.addEventListener('click', ()=>{
+                overlay.style.display='flex';
                 emptyEditPopup(); // clears edit form so it's "refreshed"
                 renderEditProject(editProjectButton); // appropriate placeholders in the form
                 editPopup.style.display = "grid";
@@ -306,7 +328,7 @@ export const domManipulator = (function() {
 
 
             const deleteProjectButton = document.createElement('div');
-            deleteProjectButton.className = "delete task-button";
+            deleteProjectButton.className = "delete project-button";
             deleteProjectButton.textContent = "Delete";
             deleteProjectButton.addEventListener('click',()=>{
                 toDoManager.deleteProject(deleteProjectButton);
@@ -322,6 +344,7 @@ export const domManipulator = (function() {
     
     // display tasks for specific project
     function displayProjectTask(projectName){
+        console.log(allTasksList);
         if (allTasksList.length === 0){
             const noTasksYet = document.createElement('div');
             noTasksYet.textContent = "No Tasks Yet!"
@@ -335,6 +358,12 @@ export const domManipulator = (function() {
 
                 const newTaskContainer = document.createElement('div');
                 newTaskContainer.className="task-container";
+                if (allTasksList[i].status==="done"){
+                    newTaskContainer.classList.add("checked")
+                }
+                else{
+                    newTaskContainer.classList.add("unchecked")
+                }
 
                 const newTaskName = document.createElement('div');
                 newTaskName.className="task-name";
@@ -350,7 +379,17 @@ export const domManipulator = (function() {
 
                 const newTaskStatus = document.createElement('div');
                 newTaskStatus.className="task-status";
-                newTaskStatus.textContent=task.status;
+            if (task.status === "not done"){
+                newTaskStatus.classList.add("unchecked");
+                newTaskStatus.classList.remove("checked")
+            }
+            else if (task.status === "done"){
+                newTaskStatus.classList.add("checked");
+                newTaskStatus.classList.remove("unchecked")
+            }
+            newTaskStatus.addEventListener('click',()=>{
+                toDoManager.toggleComplete(newTaskStatus);
+            })
 
                 const taskButtonsContainer = document.createElement('div');
                 taskButtonsContainer.className="task-buttons-container";
@@ -358,6 +397,7 @@ export const domManipulator = (function() {
                 editTaskButton.className = "edit task-button";
                 editTaskButton.textContent="Edit";
                 editTaskButton.addEventListener('click',()=>{
+                    overlay.style.display='flex';
                     emptyEditPopup(); // clears edit form so it's "refreshed"
                     renderEditTask(editTaskButton); // appropriate placeholders in the form
                     editPopup.style.display = "grid";
@@ -372,10 +412,10 @@ export const domManipulator = (function() {
                 })
                 taskButtonsContainer.appendChild(deleteTaskButton);
 
+                newTaskContainer.appendChild(newTaskStatus);
                 newTaskContainer.appendChild(newTaskName);
                 newTaskContainer.appendChild(newTaskDate);
                 newTaskContainer.appendChild(newTaskProject);
-                newTaskContainer.appendChild(newTaskStatus);
                 newTaskContainer.appendChild(taskButtonsContainer);
 
                 taskList.appendChild(newTaskContainer);
@@ -383,10 +423,102 @@ export const domManipulator = (function() {
         }
     }
 
+    // display TODAY's tasks
+    function displayTodayTask(){
+        console.log(allTasksList);
+        if (allTasksList.length === 0){
+            const noTasksYet = document.createElement('div');
+            noTasksYet.textContent = "No Tasks Yet!"
+            taskList.appendChild(noTasksYet);
+        }
+
+        const date = new Date();
+
+        let day = ("0" + date.getDate()).slice(-2);
+        let month = ("0" + (date.getMonth() + 1)).slice(-2);
+        let year = date.getFullYear();
+
+        let currentDate = (year+"-"+month+"-"+day)
+
+        for (let i = 0; i < allTasksList.length; i++){
+            if (currentDate === allTasksList[i].date){
+                const task = allTasksList[i];
+
+            const newTaskContainer = document.createElement('div');
+            newTaskContainer.className="task-container";
+            if (allTasksList[i].status==="done"){
+                newTaskContainer.classList.add("checked")
+            }
+            else{
+                newTaskContainer.classList.add("unchecked")
+            }
+
+
+            const newTaskName = document.createElement('div');
+            newTaskName.className="task-name";
+            newTaskName.textContent= task.title;
+
+            const newTaskDate = document.createElement('div');
+            newTaskDate.className = "task-date";
+            newTaskDate.textContent=task.date;
+
+            const newTaskProject =document.createElement('div');
+            newTaskProject.className="task-project";
+            newTaskProject.textContent=task.project;
+
+            const newTaskStatus = document.createElement('div');
+            newTaskStatus.className="task-status";
+            if (task.status === "not done"){
+                newTaskStatus.classList.add("unchecked");
+                newTaskStatus.classList.remove("checked")
+            }
+            else if (task.status === "done"){
+                newTaskStatus.classList.add("checked");
+                newTaskStatus.classList.remove("unchecked")
+            }
+            newTaskStatus.addEventListener('click',()=>{
+                toDoManager.toggleComplete(newTaskStatus);
+            })
+
+            const taskButtonsContainer = document.createElement('div');
+
+            taskButtonsContainer.className="task-buttons-container";
+            const editTaskButton = document.createElement('div');
+            editTaskButton.className = "edit task-button";
+            editTaskButton.textContent="Edit";
+            editTaskButton.addEventListener('click', () =>{
+                overlay.style.display='flex';
+                emptyEditPopup(); // clears the popup form so it's "refreshed"
+                renderEditTask(editTaskButton); // the appropriate placeholders will appear in the form
+                editPopup.style.display = "grid";
+            })
+            taskButtonsContainer.appendChild(editTaskButton);
+
+            const deleteTaskButton = document.createElement('div');
+            deleteTaskButton.className = "delete task-button";
+            deleteTaskButton.textContent = "Delete";
+            deleteTaskButton.addEventListener('click',()=>{
+                toDoManager.deleteTask(deleteTaskButton)
+            })
+            taskButtonsContainer.appendChild(deleteTaskButton);
+
+            newTaskContainer.appendChild(newTaskStatus);
+            newTaskContainer.appendChild(newTaskName);
+            newTaskContainer.appendChild(newTaskDate);
+            newTaskContainer.appendChild(newTaskProject);
+            newTaskContainer.appendChild(taskButtonsContainer);
+
+            taskList.appendChild(newTaskContainer);
+            }
+        }
+    }
+
+
+    const editFormContainer = document.querySelector('#edit-main');
+    const editButtonsContainer = document.querySelector('#edit-buttons');
+    const editPopupTitle=document.querySelector('#edit-title');
 
     // EDITING TASKS DOM
-    const editFormContainer = document.querySelector('#edit-main');
-    const editButtonsContainer = document.querySelector('#edit-buttons')
 
     // empties edit task popup before being open
     function emptyEditPopup(){
@@ -404,6 +536,8 @@ export const domManipulator = (function() {
         const oldTaskName = taskContainer.querySelector('.task-name');
         const oldTaskDate = taskContainer.querySelector('.task-date');
         const oldTaskProject = taskContainer.querySelector('.task-project');
+
+        editPopupTitle.textContent = "Edit Task";
 
         for(let i=0;i<allTasksList.length;i++){
             // checks if the clicked container has the matching task info in case there are tasks with duplicate info
@@ -427,6 +561,7 @@ export const domManipulator = (function() {
 
                 const oldTaskNameInvalid =  document.createElement('div');
                 oldTaskNameInvalid.className="invalid-feedback";
+                oldTaskNameInvalid.id="edit-invalid";
                 oldTaskNameInvalid.textContent="Task name is required";
                 editTaskName.appendChild(oldTaskNameInvalid);
 
@@ -505,6 +640,7 @@ export const domManipulator = (function() {
                 editTaskClose.textContent = "Close";
                 editTaskClose.addEventListener('click', ()=>{
                     editPopup.style.display="none";
+                    overlay.style.display="none";
                 } )
                 editButtonsContainer.appendChild(editTaskClose);
 
@@ -512,6 +648,7 @@ export const domManipulator = (function() {
                 editTaskSubmit.id="edit-task-submit";
                 editTaskSubmit.textContent="Update Task";
                 editTaskSubmit.addEventListener('click', ()=>{
+                    overlay.style.display="none";
                     toDoManager.updateTask(button); // refers to the same input as the one for render edit task function
                                                     // so it will look at the same task info
                 })
@@ -527,6 +664,8 @@ export const domManipulator = (function() {
     function renderEditProject(button){
         const projectContainer = button.closest('.project-container');
         const oldProjectName = projectContainer.querySelector('.project-name');
+
+        editPopupTitle.textContent = "Edit Project"
 
         for (let i=0; i<projectList.length;i++){
             if (projectList[i].title === oldProjectName.textContent){
@@ -563,7 +702,7 @@ export const domManipulator = (function() {
 
                 const oldProjectDetailsInput = document.createElement('textarea');
                 oldProjectDetailsInput.id="old-project-details";
-                oldProjectDetailsInput.value=projectList[i].details;
+                oldProjectDetailsInput.value=projectList[i].details; // old project details already in textbox
 
                 editProjectDetails.appendChild(oldProjectDetailsInput);
 
@@ -576,6 +715,7 @@ export const domManipulator = (function() {
                 editProjectClose.id = "edit-project-close";
                 editProjectClose.textContent = "Close";
                 editProjectClose.addEventListener('click', ()=>{
+                    overlay.style.display="none";
                     editPopup.style.display="none";
                 } )
                 editButtonsContainer.appendChild(editProjectClose);
@@ -584,7 +724,9 @@ export const domManipulator = (function() {
                 editProjectSubmit.id="edit-project-submit";
                 editProjectSubmit.textContent="Update Prpject";
                 editProjectSubmit.addEventListener('click', ()=>{
-                    toDoManager.updateProject(button);
+                    overlay.style.display="none";
+                    toDoManager.updateProject(button); // refers to the same "button" that was input for rendering the edit project popup
+                                                        // so we are grabbing the same information as we did for the form placeholders
                 })
                 editButtonsContainer.appendChild(editProjectSubmit);
             }
@@ -599,6 +741,7 @@ export const domManipulator = (function() {
         renderProjectForm,
         renderProjectSidebar,
         displayAllTask,
+        displayTodayTask,
         displayAllProject,
         displayProjectTask,
         renderEditTask,
@@ -608,6 +751,8 @@ export const domManipulator = (function() {
 
 
 const createNewPopup = document.querySelector('#create-new-popup');
+
+
 export const toDoManager = (function() {
 
     // object constructor //
@@ -623,31 +768,39 @@ export const toDoManager = (function() {
 
     // add a new task to the allTasksList array
     function addTask(){
-        const title = document.querySelector('#task-name').value;
+        const title = document.querySelector('#task-name').value.trim();
         const date = document.querySelector('#task-date').value;
         const details = document.querySelector('#task-details').value;
         const project = document.querySelector('#task-project').value;
         const status = "not done"; //default is not done
-
         const newTask = new Task(title, date, details, project,status);
         allTasksList.push(newTask);
-        console.log(allTasksList)
     }
 
-    function submitTask(){ //when u click "add task"
-        addTask(); // add task to array
-        domManipulator.emptyDashboard(); //empty the tasklist
-        domManipulator.displayAllTask(); // fills in tasklist
-        createNewPopup.style.display='none'; // close popup 
-        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+    //when u click "add task", calls addTask function, and updates task list display
+    function submitTask(){ 
+        const title = document.querySelector('#task-name').value.trim();
+        const nameFormInvalid = document.querySelector('.invalid-feedback');
+        // make sure name is not empty or just a bunch of white spaces
+        if (title.length === 0){
+            nameFormInvalid.style.visibility='visible';
+        }
+        else {
+            addTask(); // add task to array
+            domManipulator.emptyDashboard(); //empty the tasklist
+            domManipulator.displayAllTask(); // fills in tasklist
+            createNewPopup.style.display='none'; // close popup 
+            domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
 
-        
+        console.log(allTasksList)
+        }
     }
 
 
     // "update task" button clicked.. i have to put this inside the render edit task function
     // so it knows which task to update
-    function updateTask(button){
+    function updateTask(button){ //button refers to whichever edit button is clicked, which shares
+                                // parent node with the relevant function
 
         // same definitions and names as in the edit task popup render function
         const taskContainer = button.closest('.task-container');
@@ -660,41 +813,50 @@ export const toDoManager = (function() {
         const oldProjectSelect = document.querySelector('#old-task-project');
         const oldTaskDetailsInput = document.querySelector('#old-task-details');
 
-        for(let i=0;i<allTasksList.length;i++){
-            if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
-                allTasksList[i].title = oldTaskNameInput.value;
-                allTasksList[i].date = oldTaskDateInput.value;
-                allTasksList[i].project = oldProjectSelect.value;
-                allTasksList[i].details = oldTaskDetailsInput.value;
-                break
-            }
+        const newTitle = oldTaskNameInput.value.trim();
+        if (newTitle.length === 0){
+            const nameFormInvalid = document.querySelector('#edit-invalid');
+            console.log(nameFormInvalid)
+            nameFormInvalid.style.visibility="visible"
         }
-        console.log(allTasksList);
-        domManipulator.emptyDashboard(); //empty the tasklist
-        domManipulator.displayAllTask(); // fills in tasklist
-        editPopup.style.display='none'; // close popup 
-        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+        else{
+            for(let i=0;i<allTasksList.length;i++){
+                if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
+                    allTasksList[i].title = oldTaskNameInput.value;
+                    allTasksList[i].date = oldTaskDateInput.value;
+                    allTasksList[i].project = oldProjectSelect.value;
+                    allTasksList[i].details = oldTaskDetailsInput.value;
+                    break
+                }
+            }
+            domManipulator.emptyDashboard(); //empty the tasklist
+            domManipulator.displayAllTask(); // fills in tasklist
+            editPopup.style.display='none'; // close popup 
+            domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+        }
+        
     }
 
-    function deleteTask(button){
+    function deleteTask(button){ // same situation as above updateTask
         const taskContainer = button.closest('.task-container');
         const oldTaskName = taskContainer.querySelector('.task-name');
         const oldTaskDate = taskContainer.querySelector('.task-date');
         const oldTaskProject = taskContainer.querySelector('.task-project');
 
+        // remove task from array
         for(let i=0;i<allTasksList.length;i++){
             if (allTasksList[i].title===oldTaskName.textContent && allTasksList[i].date === oldTaskDate.textContent && allTasksList[i].project === oldTaskProject.textContent){
                 allTasksList.splice(i,1);
                 break
             }
         }
-        console.log(allTasksList);
         domManipulator.emptyDashboard(); //empty the tasklist
-        domManipulator.displayAllTask(); // fills in tasklist
+        domManipulator.displayAllTask(); // fills in tasklist with updated tasks
         domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
 
     }
 
+    // for individual project pages - only removes the task's project info
     function deleteTaskFromProject(button){
         const taskContainer = button.closest('.task-container');
         const oldTaskName = taskContainer.querySelector('.task-name');
@@ -707,10 +869,38 @@ export const toDoManager = (function() {
                 break
             }
         }
-        console.log(allTasksList);
         domManipulator.emptyDashboard(); //empty the tasklist
-        domManipulator.displayAllTask(); // fills in tasklist
-        domManipulator.renderDashboardTitle('All Tasks'); //defaults to all tasks page
+        domManipulator.displayProjectTask(oldTaskProject.textContent); // fills in tasklist
+        domManipulator.renderDashboardTitle(oldTaskProject.textContent); //defaults to all tasks page
+    }
+
+    // complete/uncomplete a task
+    function toggleComplete(button){
+        const taskContainer = button.closest('.task-container');
+        const taskName = taskContainer.querySelector('.task-name');
+        const taskDate = taskContainer.querySelector('.task-date');
+        const taskProject = taskContainer.querySelector('.task-project');
+
+        for (let i = 0; i<allTasksList.length; i++){
+            if (allTasksList[i].title === taskName.textContent && allTasksList[i].date === taskDate.textContent&& allTasksList[i].project === taskProject.textContent){
+                if (button.classList.contains("checked")){
+                    button.classList.add("unchecked");
+                    button.classList.remove("checked");
+                    taskContainer.classList.add("unchecked")
+                    taskContainer.classList.remove("checked")
+
+                    allTasksList[i].status="not done"
+                }
+                else if (button.classList.contains("unchecked")){
+                    button.classList.add("checked");
+                    button.classList.remove("unchecked");
+                    taskContainer.classList.add("checked");
+                    taskContainer.classList.remove("unchecked")
+
+                    allTasksList[i].status="done"
+                }
+            }
+        }
     }
 
     // object constructor
@@ -781,8 +971,6 @@ export const toDoManager = (function() {
                 allTasksList[j].project="";
             }
         }
-        console.log(projectList);
-        console.log(allTasksList);
         domManipulator.emptyDashboard(); //empty the tasklist
         domManipulator.displayAllProject(); // fills in tasklist
         domManipulator.renderDashboardTitle('Projects'); //defaults to all tasks page
@@ -792,6 +980,7 @@ export const toDoManager = (function() {
 
 
     // update the task's project name if project name is changed
+    // called in update project function
     function updateTaskProject(oldProjectName, oldProjectNameInput){
         for (let i = 0; i < allTasksList.length; i++){
             if (oldProjectName.textContent === allTasksList[i].project){
@@ -808,6 +997,7 @@ export const toDoManager = (function() {
         submitProject,
         updateTask,
         deleteTask,
+        toggleComplete,
         deleteTaskFromProject,
         updateProject,
         updateTaskProject,
